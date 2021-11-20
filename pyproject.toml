@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "csdn-blog-export"
+version = "0.1.0"
+description = ""
+authors = ["tomoyachen <tomoya_chen@163.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+lxml = "^4.6.4"
+fake_useragent = "^0.1.11"
+requests = "^2.26.0"
+html2text = "^2020.1.16"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
