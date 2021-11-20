@@ -31,7 +31,7 @@ def get_article_list_part_with_page(username: str, page: int = 1) -> dict:
 
 def get_all_article_list(username: str) -> list:
     part = get_article_list_part_with_page(username)
-    article_amount: int = part['data']['total']
+    article_amount: int = part['data']['total'] or 0
     article_list: list = part['data']['list']
     i = 1
     while article_amount - 20 > 0:
@@ -39,6 +39,9 @@ def get_all_article_list(username: str) -> list:
         i += 1
         next_part = get_article_list_part_with_page(username, i)
         article_list += next_part['data']['list']
+    if len(article_list) == 0:
+        print(f'{HOST}/{username} 作者无文章，或作者不存在')
+
     return article_list
 
 
@@ -49,6 +52,10 @@ def visit_page(url: str) -> BeautifulSoup:
         'accept': "accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"
     }
     response = requests.get(url=url, headers=headers)
+
+    if response.status_code != 200:
+        print(f'{url} 访问失败，HTTP CODE: {response.status_code}')
+
     response.encoding = 'utf-8'
     html_content = response.text
     soup = BeautifulSoup(html_content, 'lxml')
@@ -64,6 +71,10 @@ def get_article_html(username: str, article_id: int, needTOC: bool = True) -> st
     copyright = article_detail.select_one('.slide-content-box')
     tags = article_detail.select_one('div.blog-tags-box')
     content = article_detail.select_one('div#article_content')
+
+    if not title or not content:
+        print(f'{url} 文章标题或内容获取失败')
+        return None
 
     html = f"""{title}
 
@@ -115,17 +126,18 @@ def export_article(username, article_id: str):
     :return:
     '''
     article_html = get_article_html(username=username, article_id=article_id, needTOC=True)
-    article_markdown = get_article_markdown(article_html)
+    if article_html:
+        article_markdown = get_article_markdown(article_html)
 
-    try:
-        article_filename = get_title_from_article_html(article_html)
-        export(f'./articles/{username}/{article_filename}.md', article_markdown)
-        print(f'《{article_filename}》 导出成功')
-    except Exception as e:
-        print(f'《{article_filename}》 导出失败', e)
+        try:
+            article_filename = get_title_from_article_html(article_html)
+            export(f'./articles/{username}/{article_filename}.md', article_markdown)
+            print(f'《{article_filename}》 导出成功')
+        except Exception as e:
+            print(f'《{article_filename}》 导出失败', e)
 
 
-def export_all_article(username: str, index: int = 0):
+def export_articles(username: str, index: int = 0):
     '''
     导出全部文章，支持指定列表起始索引
     :param username: 博主用户名
@@ -137,19 +149,18 @@ def export_all_article(username: str, index: int = 0):
     for article in article_list[index:]:
         article_id = article['articleId']
         article_html = get_article_html(username=username, article_id=article_id, needTOC=True)
-        article_markdown = get_article_markdown(article_html)
-        # print(article_markdown)
-
-        try:
-            i += 1
-            article_filename = get_title_from_article_html(article_html)
-            export(f'./articles/{username}/{article_filename}.md', article_markdown)
-            print(f'第 {i} 篇 《{article_filename}》 导出成功')
-        except Exception as e:
-            print(f'第 {i} 篇 《{article_filename}》 导出失败', e)
+        if article_html:
+            article_markdown = get_article_markdown(article_html)
+            try:
+                i += 1
+                article_filename = get_title_from_article_html(article_html)
+                export(f'./articles/{username}/{article_filename}.md', article_markdown)
+                print(f'第 {i} 篇 《{article_filename}》 导出成功')
+            except Exception as e:
+                print(f'第 {i} 篇 《{article_filename}》 导出失败', e)
 
 
 if __name__ == "__main__":
-    username = 'username'
+    username = 'username' # 请勿泄露你的用户名
     export_article(username=username, article_id=123456789)
-    export_all_article(username=username, index=0)
+    export_articles(username=username, index=0)

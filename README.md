@@ -22,7 +22,7 @@ poetry install
 export_article(username, article_id)
 
 # 导出全部
-export_all_article(username)
+export_articles(username)
 ```
 
 ## 命令行使用（后期更新，但...真的需要吗？）
