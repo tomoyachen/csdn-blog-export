@@ -5,6 +5,7 @@ import lxml
 import html2text
 import os
 import argparse
+import re
 
 HOST = "https://blog.csdn.net"
 USER_AGENT = UserAgent().random
@@ -94,11 +95,12 @@ def get_article_html(username: str, article_id: int, needTOC: bool = True) -> st
 def get_article_markdown(article_html: str) -> str:
     md = html2text.html2text(article_html)
     # 兼容 html2text 问题
-    # 1. image or link 地址过长时可能会换行，已经做了一些强兼容，但可能还会遇到新的情况
-    md = md.replace('x-oss-\nprocess=image/watermark', 'x-oss-process=image/watermark')
-    md = md.replace('/licenses/by-\nsa', '/licenses/by-sa')
-    md = md.replace('/img-\nblog.csdn.net', '/img-blog.csdn.net')
-    md = md.replace('/img-\nblog.csdnimg.cn', '/img-blog.csdnimg.cn')
+    # 1. image or link 地址过长时可能会在字符 "-" 后面换行。
+    results = re.findall('\[.*\]\((?:.+?-\n)+.+?\)', md)
+    for result in results:
+        keyword = result.replace('\n', '')
+        md = md.replace(result, keyword)
+
     # 仍存在的问题：
     # 1. html 中 * 星号，转成 markdown 后，一定会识别成列表，因为没有 +/ 转译。
     # 2. html 中 二级 li 标签，转成 markdown 后，有概率变成多个 * 号。
