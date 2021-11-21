@@ -4,6 +4,7 @@ from fake_useragent import UserAgent
 import lxml
 import html2text
 import os
+import argparse
 
 HOST = "https://blog.csdn.net"
 USER_AGENT = UserAgent().random
@@ -97,6 +98,7 @@ def get_article_markdown(article_html: str) -> str:
     md = md.replace('x-oss-\nprocess=image/watermark', 'x-oss-process=image/watermark')
     md = md.replace('/licenses/by-\nsa', '/licenses/by-sa')
     md = md.replace('/img-\nblog.csdn.net', '/img-blog.csdn.net')
+    md = md.replace('/img-\nblog.csdnimg.cn', '/img-blog.csdnimg.cn')
     # 仍存在的问题：
     # 1. html 中 * 星号，转成 markdown 后，一定会识别成列表，因为没有 +/ 转译。
     # 2. html 中 二级 li 标签，转成 markdown 后，有概率变成多个 * 号。
@@ -161,6 +163,19 @@ def export_articles(username: str, index: int = 0):
 
 
 if __name__ == "__main__":
-    username = 'username' # 请勿泄露你的用户名
-    export_article(username=username, article_id=123456789)
-    export_articles(username=username, index=0)
+    # 手动执行
+    # username = 'username' # 请勿泄露你的用户名
+    # export_article(username=username, article_id=123456789)
+    # export_articles(username=username, index=0)
+
+    # 命令行执行
+    parser = argparse.ArgumentParser()
+    parser.add_argument('username', type=str, help="文章作者用户名，可从文章 URL 中获取")
+    parser.add_argument('-a', '--article_id', type=int, help="单篇导出的文章 ID，可从文章 URL 中获取")
+    parser.add_argument('-i', '--article_index', default=0, type=int, help="全部导出的文章列表起始索引")
+    args = parser.parse_args()
+
+    if args.article_id:
+        export_article(username=args.username, article_id=args.article_id)
+    else:
+        export_articles(username=args.username, index=args.article_index)

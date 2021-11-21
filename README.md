@@ -13,26 +13,28 @@ btw 本来以为要自己写映射，发现有比较成熟的 [html2md](https://
 poetry install
 ```
 
-## 常规使用
+## 手动调用
 ```bash
-直接修改 main 入口的源码后执行吧。
-参数来源均可以从文章详情页获取：/username/article/details/123456789
-
 # 导出单篇
-export_article(username, article_id)
+export_article("zhangsan", 123456789)
 
 # 导出全部
-export_articles(username)
+export_articles("zhangsan")
+export_articles("zhangsan", 21)
 ```
 
-## 命令行使用（后期更新，但...真的需要吗？）
+## 命令行使用
 ```bash
-# 非虚拟环境下
-poetry run python export.py username 123456789
-
 # 进入虚拟环境后执行
 poetry shell
-python export.py username
+python export.py zhangsan -a 123456789 
+python export.py zhangsan
+python export.py zhangsan -i 21
+
+# 非虚拟环境下执行
+poetry run python export.py zhangsan -a 123456789
+poetry run python export.py zhangsan
+poetry run python export.py zhangsan -i 21
 ```
 
 ## 关于模板
