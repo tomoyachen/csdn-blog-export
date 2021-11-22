@@ -8,7 +8,11 @@ import argparse
 import re
 
 HOST = "https://blog.csdn.net"
-USER_AGENT = UserAgent().random
+try:
+    USER_AGENT = UserAgent(use_cache_server=False).random
+except Exception as e:
+    USER_AGENT = UserAgent(path='./fake_useragent.json').random
+
 requests.packages.urllib3.disable_warnings()
 
 
